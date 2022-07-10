@@ -2,8 +2,8 @@ import collections
 
 import terminaltables
 
-from headhunter import get_hh_vacancies
-from superjob import get_superjob_vacancies
+from headhunter import get_hh_avg_salary
+from superjob import get_superjob_avg_salary
 
 
 def main():
@@ -24,8 +24,8 @@ def main():
     ]
 
     SearchFunction = collections.namedtuple('SearchFunction', ['func', 'name'])
-    headhunter = SearchFunction(func=get_hh_vacancies, name='Headhunter')
-    superjob = SearchFunction(func=get_superjob_vacancies, name='Superjob')
+    headhunter = SearchFunction(func=get_hh_avg_salary, name='Headhunter')
+    superjob = SearchFunction(func=get_superjob_avg_salary, name='Superjob')
 
     funcs = [headhunter, superjob]
 

@@ -29,9 +29,9 @@ def predict_rub_salary_superjob(vacancy: dict) -> int:
         return vacancy['payment_to'] * 0.8
 
 
-def get_superjob_vacancies(vacancy: str, location: str) -> dict:
+def get_superjob_avg_salary(vacancy: str, location: str) -> dict:
     """
-    Ищет вакансии на Superjob.
+    Рассчитывает среднюю зарплату для вакансий на Superjob.
 
     :param vacancy: название вакансии.
     :param location: город или регион.
@@ -47,7 +47,7 @@ def get_superjob_vacancies(vacancy: str, location: str) -> dict:
                'keywords[0][srws]': 1,
                'keywords[0][skwc]': 'and',
                'keywords[0][keys]': vacancy,
-               'no_agreement': 1,
+               'no_agreement': 0,
                'period': 30,
                'count': 100,
                'page': 0,
@@ -59,26 +59,31 @@ def get_superjob_vacancies(vacancy: str, location: str) -> dict:
     collected_vacancies = []
     vacancies_count = 0
     cycle = True
-    while cycle:
-        resp = requests.get(search_vacancies_url, headers=headers, params=payload)
-        resp.raise_for_status()
+    with requests.Session() as session:
+        session.headers.update(headers)
+        session.params = payload
+        while cycle:
+            resp = session.get(search_vacancies_url)
+            resp.raise_for_status()
 
-        cycle = resp.json()['more']
-        vacancies_count = resp.json()['total']
-        collected_vacancies.extend(resp.json()['objects'])
-        payload['page'] += 1
+            cycle = resp.json()['more']
+            vacancies_count = resp.json()['total']
+            collected_vacancies.extend(resp.json()['objects'])
+            payload['page'] += 1
 
     average_salary = 0
     if collected_vacancies:
-        average_salary = sum([predict_rub_salary_superjob(vacancy) for vacancy in collected_vacancies]) / len(
-            collected_vacancies)
+        vacancies_with_salary = [vacancy for vacancy in collected_vacancies if
+                                 vacancy['payment_from'] or vacancy['payment_to']]
+        average_salary = sum([predict_rub_salary_superjob(vacancy) for vacancy in vacancies_with_salary]) / len(
+            vacancies_with_salary)
 
     return {
         'vacancies_found': vacancies_count,
-        'vacancies_processed': len(collected_vacancies),
-        'average_salary': int(average_salary),
+        'vacancies_processed': len(vacancies_with_salary) if collected_vacancies else 0,
+        'average_salary': int(average_salary) if collected_vacancies else 0,
     }
 
 
 if __name__ == '__main__':
-    pprint(get_superjob_vacancies('Программист Javasript', 'Москва'))
+    pprint(get_superjob_avg_salary('Программист Python', 'Москва'))

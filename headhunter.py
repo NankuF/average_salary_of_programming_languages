@@ -84,9 +84,9 @@ def predict_rub_salary_hh(vacancy: dict) -> int:
         return vacancy['to'] * 0.8
 
 
-def get_hh_vacancies(vacancy: str, location: str) -> dict:
+def get_hh_avg_salary(vacancy: str, location: str) -> dict:
     """
-    Ищет вакансии на Headhunter.
+    Рассчитывает среднюю зарплату для вакансий на Headhunter.
 
     :param vacancy: название вакансии.
     :param location: город или регион.
@@ -96,37 +96,41 @@ def get_hh_vacancies(vacancy: str, location: str) -> dict:
                'area': get_location_id(name=location),
                'period': 30,
                'professional_role': get_professional_role('программист'),
-               'only_with_salary': True,
+               'only_with_salary': False,
                'page': 0,
                'search_field': {'name': 'в названии вакансии'},
+               'per_page': 100,
                }
 
     base_url = 'https://api.hh.ru/'
     search_vacancies_url = f'{base_url}vacancies'
 
-    resp = requests.get(search_vacancies_url, headers=HEADERS, params=payload)
-    resp.raise_for_status()
-    vacancies = resp.json()
-    collected_vacancies = vacancies['items']
+    with requests.Session() as session:
+        session.headers.update(HEADERS)
+        session.params = payload
+        collected_vacancies = []
+        while True:
+            resp = session.get(search_vacancies_url)
+            resp.raise_for_status()
+            vacancies = resp.json()
+            if vacancies['page'] >= vacancies['pages']:
+                break
 
-    while vacancies['page'] < vacancies['pages'] - 1:
-        payload['page'] += 1
-        resp = requests.get(search_vacancies_url, headers=HEADERS, params=payload)
-        resp.raise_for_status()
-        vacancies = resp.json()
-        collected_vacancies.extend(vacancies['items'])
+            collected_vacancies.extend(vacancies['items'])
+            payload['page'] += 1
 
     average_salary = 0
     if collected_vacancies:
-        average_salary = sum([predict_rub_salary_hh(vacancy['salary']) for vacancy in collected_vacancies]) / len(
-            collected_vacancies)
+        vacancies_with_salary = [vacancy for vacancy in collected_vacancies if vacancy['salary']]
+        average_salary = sum([predict_rub_salary_hh(vacancy['salary']) for vacancy in vacancies_with_salary]) / len(
+            vacancies_with_salary)
 
     return {
         'vacancies_found': vacancies['found'],
-        'vacancies_processed': len(collected_vacancies),
-        'average_salary': int(average_salary),
+        'vacancies_processed': len(vacancies_with_salary) if collected_vacancies else 0,
+        'average_salary': int(average_salary) if collected_vacancies else 0,
     }
 
 
 if __name__ == '__main__':
-    pprint(get_hh_vacancies('Программист Javasript', 'Москва'))
+    pprint(get_hh_avg_salary('Программист Javasript', 'Москва'))
