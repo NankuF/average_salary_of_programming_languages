@@ -130,16 +130,18 @@ def get_hh_avg_salary(vacancy: str, location: str, secret_key: str = None) -> di
     if collected_vacancies:
         currencies = get_dictionaries()['currency']
         vacancies_with_salary = [vacancy for vacancy in collected_vacancies if vacancy['salary']]
-        average_salary = sum([predict_rub_salary(vacancy['salary']['from'],
-                                                 vacancy['salary']['to'],
-                                                 vacancy['salary']['currency'],
-                                                 currencies)
-                              for vacancy in vacancies_with_salary]) / len(vacancies_with_salary)
+        predict_salary = [predict_rub_salary(vacancy['salary']['from'],
+                                             vacancy['salary']['to'],
+                                             vacancy['salary']['currency'],
+                                             currencies)
+                          for vacancy in vacancies_with_salary]
+        if vacancies_with_salary:
+            average_salary = sum(predict_salary) / len(vacancies_with_salary)
 
     return {
         'vacancies_found': vacancies['found'],
         'vacancies_processed': len(vacancies_with_salary) if collected_vacancies else 0,
-        'average_salary': int(average_salary) if collected_vacancies else 0,
+        'average_salary': int(average_salary),
     }
 
 
@@ -188,16 +190,18 @@ def get_superjob_avg_salary(vacancy: str, location: str, secret_key: str) -> dic
         currencies = get_dictionaries()['currency']
         vacancies_with_salary = [vacancy for vacancy in collected_vacancies if
                                  vacancy['payment_from'] or vacancy['payment_to']]
-        average_salary = sum([predict_rub_salary(vacancy['payment_from'],
-                                                 vacancy['payment_to'],
-                                                 vacancy['currency'],
-                                                 currencies)
-                              for vacancy in vacancies_with_salary]) / len(vacancies_with_salary)
+        predict_salary = [predict_rub_salary(vacancy['payment_from'],
+                                             vacancy['payment_to'],
+                                             vacancy['currency'],
+                                             currencies)
+                          for vacancy in vacancies_with_salary]
+        if vacancies_with_salary:
+            average_salary = sum(predict_salary) / len(vacancies_with_salary)
 
     return {
         'vacancies_found': vacancies_count,
         'vacancies_processed': len(vacancies_with_salary) if collected_vacancies else 0,
-        'average_salary': int(average_salary) if collected_vacancies else 0,
+        'average_salary': int(average_salary),
     }
 
 
