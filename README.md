@@ -32,14 +32,22 @@ cd average_salary_of_programming_languages
 ```commandline
 python -m venv venv
 ```
-
-4. Установите зависимости:<br>
+4. Активируйте виртуальное окружение:<br>
+Unix
+```commandline
+. ./venv/bin/activate
+```
+Windows
+```commandline
+. .\venv\Scripts\activate
+```
+5. Установите зависимости:<br>
 
 ```commandline
 pip install -r requirements.txt
 ```
 
-5. Создайте файл `.env` и укажите следующие переменные:<br>
+6. Создайте файл `.env` и укажите следующие переменные:<br>
 
 ```commandline
 SUPERJOB_SECRET_KEY='your_secret_key'
@@ -47,7 +55,7 @@ SUPERJOB_SECRET_KEY='your_secret_key'
 
 `SUPERJOB_SECRET_KEY` - ключ для доступа к api Superjob: https://api.superjob.ru/register <br>
 
-6. Запуск:
+7. Запуск:
 
 ```commandline
 python main.py
