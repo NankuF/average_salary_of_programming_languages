@@ -130,11 +130,12 @@ def get_hh_avg_salary(vacancy: str, location: str, secret_key: str = None) -> di
     if collected_vacancies:
         currencies = get_dictionaries()['currency']
         vacancies_with_salary = [vacancy for vacancy in collected_vacancies if vacancy['salary']]
-        predict_salary = [predict_rub_salary(vacancy['salary']['from'],
-                                             vacancy['salary']['to'],
-                                             vacancy['salary']['currency'],
-                                             currencies)
-                          for vacancy in vacancies_with_salary]
+        predict_salary = []
+        for vacancy in vacancies_with_salary:
+            salary_from = vacancy['salary']['from']
+            salary_to = vacancy['salary']['to']
+            currency = vacancy['salary']['currency']
+            predict_salary.append(predict_rub_salary(salary_from, salary_to, currency, currencies))
         if vacancies_with_salary:
             average_salary = sum(predict_salary) / len(vacancies_with_salary)
 
@@ -190,11 +191,12 @@ def get_superjob_avg_salary(vacancy: str, location: str, secret_key: str) -> dic
         currencies = get_dictionaries()['currency']
         vacancies_with_salary = [vacancy for vacancy in collected_vacancies if
                                  vacancy['payment_from'] or vacancy['payment_to']]
-        predict_salary = [predict_rub_salary(vacancy['payment_from'],
-                                             vacancy['payment_to'],
-                                             vacancy['currency'],
-                                             currencies)
-                          for vacancy in vacancies_with_salary]
+        predict_salary = []
+        for vacancy in vacancies_with_salary:
+            salary_from = vacancy['payment_from']
+            salary_to = vacancy['payment_to']
+            currency = vacancy['currency']
+            predict_salary.append(predict_rub_salary(salary_from, salary_to, currency, currencies))
         if vacancies_with_salary:
             average_salary = sum(predict_salary) / len(vacancies_with_salary)
 
